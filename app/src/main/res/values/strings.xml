@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Human Activity Recognition</string>
+    <string name="app_name">Indoor Positioning</string>
     <string name="activity">Activity</string>
     <string name="probability">Probability</string>
     <string name="downstairs">Downstairs</string>
