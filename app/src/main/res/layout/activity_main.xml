@@ -106,14 +106,14 @@
         <RelativeLayout
             android:id="@+id/blue_dot_row"
             android:layout_width="wrap_content"
-            android:layout_height="288dp">
+            android:layout_height="415dp">
 
 
             <ImageView
                 android:id="@+id/imageView"
-                android:layout_width="307dp"
-                android:layout_height="224dp"
-                app:srcCompat="@drawable/floor_plan" />
+                android:layout_width="1000px"
+                android:layout_height="700px"
+                app:srcCompat="@drawable/floor_plan1" />
 
             <ImageView
                 android:id="@+id/blue_dot"

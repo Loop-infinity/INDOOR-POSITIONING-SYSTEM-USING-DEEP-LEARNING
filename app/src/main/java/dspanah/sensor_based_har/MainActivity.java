@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     double Ynpos=120;
 
     float density = 1;
+    int nSteps=2;
   //  int xsize=0;
  //   int x1size=0;
 
@@ -99,7 +100,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         textToSpeech = new TextToSpeech(this, this);
         textToSpeech.setLanguage(Locale.US);
 
-        density = getResources().getDisplayMetrics().density;
+    //    density = getResources().getDisplayMetrics().density;
+        density=1;
 
 
        imageView.setOnTouchListener(new View.OnTouchListener() {
@@ -209,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
           //  System.out.println("AZIMUTH:  "+azimuth);
 
             animRot = ObjectAnimator.ofFloat(blueDot,"rotation",cAzimuth,azimuth);
-            animRot.setDuration(5);
+            animRot.setDuration(1);
             animRot.start();
       //      Animation animRot = new RotateAnimation(-cAzimuth,-azimuth,Animation.RELATIVE_TO_SELF,0.5f,Animation.RELATIVE_TO_SELF,0.5f);
             cAzimuth=azimuth;
@@ -245,16 +247,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 standingTextView.setText(Float.toString(round(results[1], 2)));
                 walkingTextView.setText(Float.toString(round(results[2], 2))); /* */
 
-            if(results[2] > results[1])
+            if(results[2] > 0.50)
             {
                 Xcpos = Xnpos;
-                Xnpos = Xnpos +  (25*Math.cos(Math.toRadians(azimuth-90)));// System.out.println("Azimuth"+(azimuth-90));
+                Xnpos = Xnpos +  (nSteps*70*Math.cos(Math.toRadians(azimuth)));// System.out.println("Azimuth"+(azimuth-90));
             //    System.out.println("Val"+50*Math.cos(Math.toRadians(azimuth-90)));
 
              //   System.out.println("Cpos "+cpos+"Npos"+npos);
 
                 Ycpos = Ynpos;
-                Ynpos = Ynpos +  (25*Math.sin(Math.toRadians(azimuth-90)));
+                Ynpos = Ynpos +  (nSteps*70*Math.sin(Math.toRadians(azimuth)));
 
                 objectAnimatorX = ObjectAnimator.ofFloat(blueDot,"x",density* (float)Xcpos, density* (float)Xnpos);
                 objectAnimatorX.setDuration(2500);
