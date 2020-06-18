@@ -3,6 +3,11 @@ package dspanah.sensor_based_har;
 import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.hardware.Sensor;
@@ -17,7 +22,6 @@ import android.view.animation.Animation;
 import android.view.animation.RotateAnimation;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +29,6 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
-
 import android.widget.ImageView;
 import android.view.View;
 import android.animation.AnimatorSet;
@@ -44,7 +47,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
   //image
     ImageView blueDot;
-    ImageView imageView;
     ObjectAnimator  objectAnimatorX;
     ObjectAnimator  objectAnimatorY;
     ObjectAnimator animRot;
@@ -59,6 +61,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private float[] mGeomagnetic = new float[3];
     private float azimuth = 0f;
     private float cAzimuth = 0f;
+    private float stepLengthX = 0f;
+    private float stepLengthY = 0f;
 
 
     double Xcpos=90;
@@ -70,8 +74,18 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     int nSteps=2;
   //  int xsize=0;
  //   int x1size=0;
+    ImageView imageView;
+    Bitmap myBlankBitmap;
+    Bitmap bobBitmap;
+    Bitmap mutableBobBitmap;
+    Canvas myCanvas;
+    Paint myPaint;
+    int nodes[][];
 
-    private String[] labels = { "Running", "Standind", "Walking"};
+    private String[] labels = { "Running", "Standing", "Walking"};
+    private ActivityClassifier activityClassifier;
+    private DistanceEstimator distanceEstimator;
+    private int activity=0;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -96,12 +110,52 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
    //     objectAnimator = ObjectAnimator.ofFloat(blueDot,"x",cpos,50);
 
         classifier = new HARClassifier(getApplicationContext());
-
-        textToSpeech = new TextToSpeech(this, this);
-        textToSpeech.setLanguage(Locale.US);
+        activityClassifier = new ActivityClassifier();
+        distanceEstimator = new DistanceEstimator();
 
     //    density = getResources().getDisplayMetrics().density;
         density=1;
+
+        //bitmap code
+        bobBitmap = BitmapFactory.decodeResource
+                (getResources(), R.drawable.im);
+
+        Bitmap workingBobBitmap = Bitmap.createBitmap(bobBitmap);
+        mutableBobBitmap = Bitmap.createScaledBitmap(bobBitmap,700,500,true);//,50,10,bobBitmap.getWidth(),bobBitmap.getHeight()
+        mutableBobBitmap = mutableBobBitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+       /* mutableBobBitmap= Bitmap
+                .createScaledBitmap(bobBitmap,
+                        100, 100, false); */
+        // Initialize the Canvas and associate it
+        // with the Bitmap to draw on
+        myCanvas = new Canvas(mutableBobBitmap);
+
+        // Initialize the ImageView and the Paint
+       // imageView = new ImageView(this);
+        //ImageView = (ImageView) findViewById(R.id.imageView);
+
+        myPaint = new Paint();
+
+        // Draw on the Bitmap
+        // Wipe the Bitmap with a blue colormy
+        // myCanvas.drawColor(Color.argb(255, 0, 0, 255));
+
+        // Draw some bitmaps
+        // Re-size the text
+        myPaint.setTextSize(100);
+        myPaint.setStrokeWidth(12);
+        // Change the paint to white
+        myPaint.setColor(Color.argb(100, 30, 144, 250));
+        // Draw some text
+        // myCanvas.drawText("Hello World!",100, 100, myPaint);
+
+// Tell Android to set our drawing
+// as the view for this app
+// via the ImageView
+        //  setContentView(R.);
+// Associate the drawn upon Bitmap with the ImageView
+        imageView.setImageBitmap(mutableBobBitmap);
 
 
        imageView.setOnTouchListener(new View.OnTouchListener() {
@@ -111,16 +165,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 int x = (int)event.getX();
                 int y = (int)event.getY();
 
-                System.out.println("X :"+x);
-                System.out.println("Y :"+y);
 
-                //adding initial location
-              /*  RelativeLayout rl = (RelativeLayout) findViewById(R.id.blue_dot_row);
-                RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams();
-                params.leftMargin = 50;
-                params.topMargin = 60;
-                rl.addView(blueDot,params);
-                 */
+                System.out.println("CLICK X Relative to View:"+x);
+                System.out.println("CLICK Y Relative to View :"+y);
+
+                x = x + (int)imageView.getX();
+                y = y + (int)imageView.getY();
+
+                System.out.println("CLICK X Relative to image:"+x);
+                System.out.println("CLICK Y Relative to image:"+y);
+
+
                 objectAnimatorX = ObjectAnimator.ofFloat(blueDot,"x",x,x);
                // objectAnimatorX.setDuration(2500);
                 objectAnimatorY = ObjectAnimator.ofFloat(blueDot,"y",y,y);
@@ -129,6 +184,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 AnimatorSet animSetXY = new AnimatorSet();
                 animSetXY.playTogether(objectAnimatorX, objectAnimatorY);
                 animSetXY.start();
+
+                System.out.println("bluedotX: "+blueDot.getX());
+                System.out.println("bluedotY: "+blueDot.getY());
 
                 Xnpos = x/density;
                 Ynpos = y/density;
@@ -141,25 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onInit(int status) {
-        Timer timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                if (results == null || results.length == 0) {
-                    return;
-                }
-                float max = -1;
-                int idx = -1;
-                for (int i = 0; i < results.length; i++) {
-                    if (results[i] > max) {
-                        idx = i;
-                        max = results[i];
-                    }
-                }
 
-                textToSpeech.speak(labels[idx], TextToSpeech.QUEUE_ADD, null, Integer.toString(new Random().nextInt()));
-            }
-        }, 2000, 5000);
     }
 
     protected void onPause() {
@@ -176,6 +216,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     @Override
     public void onSensorChanged(SensorEvent event) {
         final float alpha = 0.97f;
+        if(x.size()==20 || x.size()==40 || x.size()==60 || x.size()==90)
+            getDirections();
+
         activityPrediction();
         synchronized (this){
 
@@ -208,7 +251,54 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             SensorManager.getOrientation(R,orientation);
             azimuth = (float) Math.toDegrees(orientation[0]);
             azimuth = (azimuth+360) % 360;
-          //  System.out.println("AZIMUTH:  "+azimuth);
+
+            if(azimuth>0 && azimuth<30){
+                azimuth=0;
+            }
+            else if(azimuth>30 && azimuth<=60){
+                azimuth=45;
+            }
+
+            else if(azimuth>60 && azimuth<=90){
+                azimuth=90;
+            }
+
+            else if(azimuth>90 && azimuth<=120){
+                azimuth=90;
+            }
+
+            else if(azimuth>120 && azimuth<=150){
+                azimuth=135;
+            }
+
+            else if(azimuth>150 && azimuth<=180){
+                azimuth=180;
+            }
+            else if(azimuth>180 && azimuth<=210){
+                azimuth=180;
+            }
+
+            else if(azimuth>210 && azimuth<=240){
+                azimuth=225;
+            }
+
+            else if(azimuth>240 && azimuth<=270){
+                azimuth=270;
+            }
+
+            else if(azimuth>270 && azimuth<=300){
+                azimuth=270;
+            }
+
+            else if(azimuth>300 && azimuth<=330){
+                azimuth=315;
+            }
+
+            else if(azimuth>330 && azimuth<=360){
+                azimuth=0;
+            }
+
+         //   System.out.println("AZIMUTH:  "+azimuth);
 
             animRot = ObjectAnimator.ofFloat(blueDot,"rotation",cAzimuth,azimuth);
             animRot.setDuration(1);
@@ -246,35 +336,32 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 runningTextView.setText(Float.toString(round(results[0], 2)));
                 standingTextView.setText(Float.toString(round(results[1], 2)));
                 walkingTextView.setText(Float.toString(round(results[2], 2))); /* */
+            //getDirections();
 
-            if(results[2] > 0.50)
+            activity = activityClassifier.getActivity(results);
+
+            if(activity ==0 || activity ==2) //RUN || WALK
             {
+                stepLengthX = distanceEstimator.getStepLengthX(activity);
+                stepLengthY = distanceEstimator.getStepLengthY(activity);
                 Xcpos = Xnpos;
-                Xnpos = Xnpos +  (nSteps*70*Math.cos(Math.toRadians(azimuth)));// System.out.println("Azimuth"+(azimuth-90));
+                Xnpos = Xnpos +  (nSteps*stepLengthX*Math.cos(Math.toRadians(azimuth)));// System.out.println("Azimuth"+(azimuth-90));
             //    System.out.println("Val"+50*Math.cos(Math.toRadians(azimuth-90)));
 
              //   System.out.println("Cpos "+cpos+"Npos"+npos);
 
                 Ycpos = Ynpos;
-                Ynpos = Ynpos +  (nSteps*70*Math.sin(Math.toRadians(azimuth)));
+                Ynpos = Ynpos +  (nSteps*stepLengthY*Math.sin(Math.toRadians(azimuth)));
 
                 objectAnimatorX = ObjectAnimator.ofFloat(blueDot,"x",density* (float)Xcpos, density* (float)Xnpos);
-                objectAnimatorX.setDuration(2500);
+                objectAnimatorX.setDuration(2300);
                 objectAnimatorY = ObjectAnimator.ofFloat(blueDot,"y",density* (float)Ycpos,density* (float)Ynpos);
-                objectAnimatorY.setDuration(2500);
-
-                /*
-                objectAnimatorX = ObjectAnimator.ofFloat(blueDot,"x",0,720);
-                objectAnimatorX.setDuration(2500);
-                objectAnimatorY = ObjectAnimator.ofFloat(blueDot,"y",0,0);
-                objectAnimatorY.setDuration(2500);*/
+                objectAnimatorY.setDuration(2300);
 
                 AnimatorSet animSetXY = new AnimatorSet();
                 animSetXY.playTogether(objectAnimatorX, objectAnimatorY);
                 animSetXY.start();
 
-             //   cpos=cpos+50;
-             //   npos=npos+50;
                 System.out.println("getTop "+imageView.getTop());
                 System.out.println("getX "+imageView.getX());
                 System.out.println("getY "+imageView.getY());
@@ -283,21 +370,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             }
 
-
-
-    // objectAnimator = ObjectAnimator.ofFloat(blueDot,"y",400);
-
-
-
             x.clear();
             y.clear();
             z.clear();
-          //  xsize=0;
 
-        /*    x1.clear();
-            y1.clear();
-            z1.clear();
-            x1size=0; */
         }
     }
 
@@ -319,6 +395,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private SensorManager getSensorManager() {
         return (SensorManager) getSystemService(SENSOR_SERVICE);
+    }
+
+    public void getDirections() {
+
+      //  paint.setStyle(Paint.Style.STROKE);
+     //   paint.setAntiAlias(true);
+
+        Bitmap workingBobBitmap = Bitmap.createBitmap(bobBitmap);
+        mutableBobBitmap = Bitmap.createScaledBitmap(bobBitmap,700,500,true);//,50,10,bobBitmap.getWidth(),bobBitmap.getHeight()
+        mutableBobBitmap = mutableBobBitmap.copy(Bitmap.Config.ARGB_8888, true);
+
+        myCanvas.setBitmap(mutableBobBitmap);
+        myCanvas.drawLine((int)blueDot.getX()-(int)imageView.getX()+(int)blueDot.getWidth()/2,(int)blueDot.getY()-(int)imageView.getY()+(int)blueDot.getHeight()/2,250,300,myPaint);
+        imageView.setImageBitmap(mutableBobBitmap);
+
+
     }
 
 }
