@@ -9,7 +9,7 @@
     <TableLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#ededed"
+        android:background="#FFFFFF"
         android:padding="0dp"
         tools:context="io.github.introml.activityrecognition.MainActivity">
 
@@ -17,7 +17,7 @@
             android:id="@+id/title_row"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="#F32446"
+            android:background="@drawable/roundedview"
             android:padding="20dp"
             android:textAlignment="center">
 
@@ -44,6 +44,10 @@
             android:id="@+id/sitting_row"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/rounded_view_dark"
             android:padding="20dp">
 
             <TextView
@@ -65,6 +69,10 @@
             android:id="@+id/standing_row"
             android:layout_width="fill_parent"
             android:layout_height="fill_parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/rounded_view_dark"
             android:padding="20dp">
 
             <TextView
@@ -86,6 +94,10 @@
             android:id="@+id/walking_row"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/rounded_view_dark"
             android:padding="20dp">
 
             <TextView
@@ -104,47 +116,100 @@
         </TableRow>
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/blue_dot_row"
-            android:layout_width="wrap_content"
-            android:layout_height="415dp">
+            android:id="@+id/direction_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="#FFFFFF">
 
+
+            <SearchView
+                android:id="@+id/destinationSearchView"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/rounded_view_dark"
+                android:iconifiedByDefault="false"
+                android:queryHint="Destination"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/get_directions_button"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.0" />
+
+            <ListView
+                android:id="@+id/destinationListView"
+                android:layout_width="0dp"
+                android:layout_height="210dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/rounded_view_dark"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/destinationSearchView" />
 
             <Button
                 android:id="@+id/get_directions_button"
-                android:layout_width="123dp"
-                android:layout_height="57dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="8dp"
+                android:background="@drawable/roundedview"
+                android:drawableLeft="@drawable/directions"
                 android:onClick="getDirections"
-                android:text="GET DIRECTIONS"
-                android:textAllCaps="false"
+                android:paddingLeft="2dp"
+                android:paddingRight="2dp"
+                android:text="DIRECTIONS"
+                android:textAlignment="center"
+                android:textAllCaps="true"
+                android:textColor="#B2181717"
+                android:textSize="12sp"
+                android:textStyle="bold"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintStart_toEndOf="@+id/destinationSearchView"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.86" />
+                app:layout_constraintVertical_bias="0.0" />
+
+
+        </android.support.constraint.ConstraintLayout>
+
+        <android.support.constraint.ConstraintLayout
+            android:id="@+id/blue_dot_row"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
 
             <ImageView
                 android:id="@+id/imageView"
-                android:layout_width="700px"
-                android:layout_height="500px"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.468"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.091" />
+                app:layout_constraintTop_toTopOf="parent" />
 
             <ImageView
                 android:id="@+id/blue_dot"
-                android:layout_width="23dp"
+                android:layout_width="20dp"
                 android:layout_height="23dp"
                 android:focusable="auto"
                 android:rotation="180"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="@+id/imageView"
+                app:layout_constraintHorizontal_bias="0.394"
+                app:layout_constraintStart_toStartOf="@+id/imageView"
+                app:layout_constraintTop_toTopOf="@+id/imageView"
+                app:layout_constraintVertical_bias="0.616"
                 app:srcCompat="@drawable/bluedot" />
         </android.support.constraint.ConstraintLayout>
+
 
     </TableLayout>
 </ScrollView>
