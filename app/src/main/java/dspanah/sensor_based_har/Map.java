@@ -20,7 +20,7 @@ public class Map {
     // a modified version of BFS that stores predecessor
 // of each vertex in array p
 // and its distance from source in array d
-    boolean BFS(int src, int dest, int n,
+    public boolean BFS(int src, int dest,
              int pred[], int dist[])
     {
 
@@ -71,7 +71,7 @@ public class Map {
 
     // utility function to print the shortest distance
 // between source vertex and destination vertex
-    int[] printShortestDistance(int s,int dest, int n)
+    public int[] getShortestPath(int s,int dest)
     {
         // predecessor[i] array stores predecessor of
         // i and distance array stores distance of i
@@ -79,7 +79,7 @@ public class Map {
         int pred[] = new int[n];
         int dist[] = new int[n];
 
-        if (BFS(s,dest,n,pred,dist) == false) {
+        if (BFS(s,dest,pred,dist) == false) {
             System.out.println("Given source and destination are not connected");
             return null;
         }
@@ -106,6 +106,11 @@ public class Map {
         }
 
         return path1;
+    }
+
+    public int numNodes()
+    {
+        return this.n;
     }
 
 }

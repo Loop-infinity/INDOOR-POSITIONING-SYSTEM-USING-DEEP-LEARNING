@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
 
         //initialising the map
-        mapNodes = new Node[36];
+        mapNodes = new Node[37];
         mapNodes[0]  = new Node(87,220,1);
         mapNodes[1]  = new Node(140,220,0,2,3,7);
         mapNodes[2]  = new Node(140,175,1);
@@ -146,7 +146,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mapNodes[8]  = new Node(305,180,7);
         mapNodes[9]  = new Node(531,220,7,13,14,10);
         mapNodes[10] = new Node(531,177,9,11,12);
-        mapNodes[11] = new Node(472,17710,10);
+        mapNodes[11] = new Node(472,177,10);
         mapNodes[12] = new Node(571,177,10);
         mapNodes[13] = new Node(665,220,9);
         mapNodes[14] = new Node(531,273,9,17,15,16);
@@ -167,20 +167,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         mapNodes[29] = new Node( 567,701,28);
         mapNodes[30] = new Node(531,863,28,31,32,33);
         mapNodes[31] = new Node(390,863,30);
-        mapNodes[32] = new Node(570,863,30);
+        mapNodes[32] = new Node(570,863,30,36);
         mapNodes[33] = new Node(531,945,30,34,35);
         mapNodes[34] = new Node(367,945,33);
         mapNodes[35] = new Node(662,945,33);
+        mapNodes[36] = new Node(570,800,32);
 
 
-        map = new Map(mapNodes,36);
+        map = new Map(mapNodes,37);
 
         //initialising searchArrayList
         list.add("Academic Section");
         list.add("Accounts Section");
         list.add("Washroom");
         list.add("Office");
-        list.add("Principle's Room");
+        list.add("Principal's Room");
         list.add("Meeting Room");
         list.add("Classroom 1");
         list.add("Classroom 2");
@@ -198,7 +199,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         searchMap.put("Classroom 3",12);
         searchMap.put("Classroom 4",19);
         searchMap.put("Meeting Room",27);
-        searchMap.put("Principle's Room",32);
+        searchMap.put("Principal's Room",36);
         searchMap.put("Office",32);
         searchMap.put("Washroom",29);
         searchMap.put("Accounts section",25);
@@ -252,7 +253,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //bitmap code
         bobBitmap = BitmapFactory.decodeResource
-                (getResources(), R.drawable.gec_main_map700);
+                (getResources(), R.drawable.gec_main_map_grey700);
         destinationBitmap = BitmapFactory.decodeResource
                 (getResources(), R.drawable.destination1);
       //  destinationBitmap = Bitmap.createScaledBitmap(destinationBitmap,30,50,true);
@@ -514,7 +515,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     public float dist(Node node1,Node node2)
     {
-        return (float)Math.sqrt( (node2.x - node1.x) * (node2.x - node1.x) + (node2.y - node1.y) * (node2.y - node1.y) );
+        return (float)Math.sqrt( Math.pow(node2.x - node1.x,2)  + Math.pow(node2.y - node1.y,2)*1.0f );
     }
     public void getDirections(View view) {
 
@@ -537,10 +538,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         imageView.setImageBitmap(mutableBobBitmap);
         myCanvas.drawBitmap(destinationBitmap,(float)mapNodes[destination].x-(destinationBitmap.getWidth()/2),(float)mapNodes[destination].y-(destinationBitmap.getHeight()),null);
 
-        float small=1000f;
+        float small=2000f;
         float d;
         int closestNode=0;
-        for(int i=0;i<36;i++)
+        for(int i=0;i<map.numNodes();i++)
         {
             d = dist(mapNodes[i],blueDot);
             if( d < small)
@@ -551,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
       //  myCanvas.drawLine(87,220,140,220,myPaint);
         myCanvas.drawLine((float)blueDotX,(float)blueDotY,(float) mapNodes[closestNode].x , (float) mapNodes[closestNode].y ,myPaint);
-        path = map.printShortestDistance(closestNode,destination,36);
+        path = map.getShortestPath(closestNode,destination);
 
         float xOffset = (float)imageView.getX();
         float yOffset = (float)imageView.getY();
