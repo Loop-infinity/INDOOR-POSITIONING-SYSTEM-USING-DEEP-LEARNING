@@ -13,6 +13,8 @@
         android:padding="0dp"
         tools:context="io.github.introml.activityrecognition.MainActivity">
 
+
+
         <TableRow
             android:id="@+id/title_row"
             android:layout_width="match_parent"
@@ -110,6 +112,81 @@
 
             <TextView
                 android:id="@+id/walking_prob"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:textSize="18sp" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/LS_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/rounded_view_dark"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/LS_title"
+                android:layout_weight="1"
+                android:text="LS"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/LS_prob"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:textSize="18sp" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/NS_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/rounded_view_dark"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/NS_title"
+                android:layout_weight="1"
+                android:text="NS"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/NS_prob"
+                android:layout_weight="1"
+                android:textAlignment="center"
+                android:textSize="18sp" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/SS_row"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginRight="8dp"
+            android:background="@drawable/rounded_view_dark"
+            android:padding="20dp">
+
+            <TextView
+                android:id="@+id/SS_title"
+                android:layout_weight="1"
+                android:text="SS"
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/SS_prob"
                 android:layout_weight="1"
                 android:textAlignment="center"
                 android:textSize="18sp" />

@@ -43,7 +43,7 @@ import android.animation.AnimatorSet;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener, TextToSpeech.OnInitListener {
 
-    private static final int N_SAMPLES = 100;
+    private static final int N_SAMPLES = 200;
     private static List<Float> x;
     private static List<Float> y;
     private static List<Float> z;
@@ -58,6 +58,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView standingTextView;
     private TextView walkingTextView;
 
+    private TextView lsTextView;
+    private TextView nsTextView;
+    private TextView ssTextView;
+
     private SearchView destinationSearchView;
     private ListView destinationListView;
     ArrayList<String> list;
@@ -65,7 +69,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     ArrayAdapter<String> adapter;
 
     private float[] results;
+    private float[] results2;
     private HARClassifier classifier;
+    private HAUClassifier HAUclassifier;
     private float[] mGravity = new float[3];
     private float[] mGeomagnetic = new float[3];
     private float azimuth = 0f;
@@ -78,6 +84,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     double Xnpos=90;
     double Ycpos=120;
     double Ynpos=120;
+    int bgPixel = -460293;
 
     float density = 1;
     int nSteps=2;
@@ -97,8 +104,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private String[] labels = { "Running", "Standing", "Walking"};
     private ActivityClassifier activityClassifier;
+    private UnitClassifier unitClassifier;
     private DistanceEstimator distanceEstimator;
-    private int activity=0;
+    private int activity=1;
+    private int unit=3;
 
 
     @SuppressLint("ClickableViewAccessibility")
@@ -119,6 +128,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         standingTextView = (TextView) findViewById(R.id.standing_prob);
         walkingTextView = (TextView) findViewById(R.id.walking_prob);
 
+        lsTextView = (TextView) findViewById(R.id.LS_prob);
+        nsTextView = (TextView) findViewById(R.id.NS_prob);
+        ssTextView = (TextView) findViewById(R.id.SS_prob);
+
         destinationSearchView = (SearchView) findViewById(R.id.destinationSearchView);
         destinationListView = (ListView) findViewById(R.id.destinationListView);
         list = new ArrayList<String>();
@@ -129,57 +142,68 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         imageView = (ImageView) findViewById(R.id.imageView);
 
         classifier = new HARClassifier(getApplicationContext());
+        HAUclassifier = new HAUClassifier(getApplicationContext());
         activityClassifier = new ActivityClassifier();
+        unitClassifier = new UnitClassifier();
         distanceEstimator = new DistanceEstimator();
 
 
         //initialising the map
-        mapNodes = new Node[37];
-        mapNodes[0]  = new Node(87,220,1);
-        mapNodes[1]  = new Node(140,220,0,2,3,7);
-        mapNodes[2]  = new Node(140,175,1);
-        mapNodes[3]  = new Node(140,299,1,4,5);
-        mapNodes[4]  = new Node(100,299,3);
-        mapNodes[5]  = new Node(140,322,3,6);
-        mapNodes[6]  = new Node(185,224,5);
-        mapNodes[7]  = new Node(305,220,1,8,9);
-        mapNodes[8]  = new Node(305,180,7);
-        mapNodes[9]  = new Node(531,220,7,13,14,10);
-        mapNodes[10] = new Node(531,177,9,11,12);
-        mapNodes[11] = new Node(472,177,10);
-        mapNodes[12] = new Node(571,177,10);
-        mapNodes[13] = new Node(665,220,9);
-        mapNodes[14] = new Node(531,273,9,17,15,16);
-        mapNodes[15] = new Node(490,273,14);
-        mapNodes[16] = new Node(571,273,14);
-        mapNodes[17] = new Node(531,392,14,20,18,19);
-        mapNodes[18] = new Node(485,392,17);
-        mapNodes[19] = new Node(580,392,17);
-        mapNodes[20] = new Node(531,504,17,21,24);
-        mapNodes[21] = new Node(495,504,20,22);
-        mapNodes[22] = new Node(495,526,21,23);
-        mapNodes[23] = new Node(472,526,22);
-        mapNodes[24] = new Node(531,566,20,25,26);
-        mapNodes[25] = new Node(479,566,24);
-        mapNodes[26] = new Node(531,655,24,27,28);
-        mapNodes[27] = new Node(574,655,26);
-        mapNodes[28] = new Node(531,701,26,29,30);
-        mapNodes[29] = new Node( 567,701,28);
-        mapNodes[30] = new Node(531,863,28,31,32,33);
-        mapNodes[31] = new Node(390,863,30);
-        mapNodes[32] = new Node(570,863,30,36);
-        mapNodes[33] = new Node(531,945,30,34,35);
-        mapNodes[34] = new Node(367,945,33);
-        mapNodes[35] = new Node(662,945,33);
-        mapNodes[36] = new Node(570,800,32);
+        mapNodes = new Node[44];
+        mapNodes[0]  = new Node(803,1450,1,2,3); //lobby
+        mapNodes[1]  = new Node(1013,1450,0);
+        mapNodes[2]  = new Node(537,1450,0);
+        mapNodes[3]  = new Node(803,1305,0,4,7,8);
+        mapNodes[4]  = new Node(873,1290,5,6,8);
+        mapNodes[5]  = new Node(886,1290,4); //office
+        mapNodes[6]  = new Node(873,1239,4); //principal's room
+        mapNodes[7]  = new Node(723,1305,3); //academic section
+        mapNodes[8]  = new Node(803,1290,3,4,9);
+        mapNodes[9]  = new Node(803,1056,8,10,11);
+        mapNodes[10] = new Node(854,1056,9); //women's washroom
+        mapNodes[11] = new Node(803,989,9,12,13);
+        mapNodes[12] = new Node(876,989,11); //meeting room
+        mapNodes[13] = new Node(803,855,11,14,15);
+        mapNodes[14] = new Node(723,855,13); //accounts section
+        mapNodes[15] = new Node(803,765,13,16,19);
+        mapNodes[16] = new Node(753,765,15,17);
+        mapNodes[17] = new Node(753,788,16,18);
+        mapNodes[18] = new Node(713,788,17); //men's washroom
+        mapNodes[19] = new Node(803,711,15,20,21);
+        mapNodes[20] = new Node(831,711,19);
+        mapNodes[21] = new Node(803,594,19,22,23,24);
+        mapNodes[22] = new Node(862,594,21,25); //classroom 4
+        mapNodes[23] = new Node(742,594,21,26); //classroom 1
+        mapNodes[24] = new Node(803,409,21,25,26,27);
+        mapNodes[25] = new Node(862,409,24); //classroom 4
+        mapNodes[26] = new Node(742,409,24); //classroom 1
+        mapNodes[27] = new Node(803,338,24,28,29,35);
+        mapNodes[28] = new Node(1013,338,27);
+        mapNodes[29] = new Node(803,268,27,30,31,32);
+        mapNodes[30] = new Node(862,268,29); //classroom 3
+        mapNodes[31] = new Node(742,268,29); //classroom 2
+        mapNodes[32] = new Node(803,83,29,33,34);
+        mapNodes[33] = new Node(862,83,30,32); //classroom 3
+        mapNodes[34] = new Node(742,83,31,32); //classroom 2
+        mapNodes[35] = new Node(463,338,27,36,37);
+        mapNodes[36] = new Node(463,241,35); //stairs
+        mapNodes[37] = new Node(220,338,35,38,39,40);
+        mapNodes[38] = new Node(220,272,37); //transport section
+        mapNodes[39] = new Node(96,338,37); //wc
+        mapNodes[40] = new Node(220,448,37,41,42);
+        mapNodes[41] = new Node(154,448,40); //cabin 1
+        mapNodes[42] = new Node(220,490,40,43);
+        mapNodes[43] = new Node(270,490,42); //cabin 2
 
 
-        map = new Map(mapNodes,37);
+        map = new Map(mapNodes,44);
 
         //initialising searchArrayList
         list.add("Academic Section");
         list.add("Accounts Section");
-        list.add("Washroom");
+        list.add("Men's Washroom");
+        list.add("Women's Washroom");
+        list.add("Stairs");
         list.add("Office");
         list.add("Principal's Room");
         list.add("Meeting Room");
@@ -190,20 +214,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         list.add("Cabin 1");
         list.add("Cabin 2");
         list.add("Transport Section");
+        list.add("WC");
+        list.add("Lobby");
 
-        searchMap.put("Transport Section",2);
-        searchMap.put("Cabin 1",4);
-        searchMap.put("Cabin 2",6);
-        searchMap.put("Classroom 1",18);
-        searchMap.put("Classroom 2",11);
-        searchMap.put("Classroom 3",12);
-        searchMap.put("Classroom 4",19);
-        searchMap.put("Meeting Room",27);
-        searchMap.put("Principal's Room",36);
-        searchMap.put("Office",32);
-        searchMap.put("Washroom",29);
-        searchMap.put("Accounts section",25);
-        searchMap.put("Academic Section",31);
+        searchMap.put("Transport Section",38);
+        searchMap.put("Cabin 1",41);
+        searchMap.put("Cabin 2",43);
+        searchMap.put("Classroom 1",26);
+        searchMap.put("Classroom 2",31);
+        searchMap.put("Classroom 3",30);
+        searchMap.put("Classroom 4",25);
+        searchMap.put("Meeting Room",12);
+        searchMap.put("Principal's Room",6);
+        searchMap.put("Office",5);
+        searchMap.put("Men's Washroom",18);
+        searchMap.put("Women's Washroom",10);
+        searchMap.put("Accounts Section",14);
+        searchMap.put("Academic Section",7);
+        searchMap.put("Stairs",36);
+        searchMap.put("WC",39);
+        searchMap.put("Lobby",0);
 
 
         destinationListView.setAdapter(adapter);
@@ -253,14 +283,14 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         //bitmap code
         bobBitmap = BitmapFactory.decodeResource
-                (getResources(), R.drawable.gec_main_map_grey700);
+                (getResources(), R.drawable.gec_main_map_grey1060);
         destinationBitmap = BitmapFactory.decodeResource
                 (getResources(), R.drawable.destination1);
       //  destinationBitmap = Bitmap.createScaledBitmap(destinationBitmap,30,50,true);
        // destinationBitmap = destinationBitmap.copy(Bitmap.Config.RGB_565,true);
 
         //Bitmap workingBobBitmap = Bitmap.createBitmap(bobBitmap);
-        mutableBobBitmap = Bitmap.createScaledBitmap(bobBitmap,700,1075,true);//,50,10,bobBitmap.getWidth(),bobBitmap.getHeight()
+        mutableBobBitmap = Bitmap.createScaledBitmap(bobBitmap,1060,1627,true);//,50,10,bobBitmap.getWidth(),bobBitmap.getHeight()
         mutableBobBitmap = mutableBobBitmap.copy(Bitmap.Config.ARGB_8888, true);
 
 
@@ -327,8 +357,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     protected void onResume() {
         super.onResume();
-        getSensorManager().registerListener(this, getSensorManager().getDefaultSensor(Sensor.TYPE_ACCELEROMETER),SensorManager.SENSOR_DELAY_GAME);
-        getSensorManager().registerListener(this, getSensorManager().getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_GAME);
+        getSensorManager().registerListener(this, getSensorManager().getDefaultSensor(Sensor.TYPE_ACCELEROMETER),10000,10000);
+        getSensorManager().registerListener(this, getSensorManager().getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), 10000,10000);
     }
 
     @Override
@@ -448,35 +478,56 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             data.addAll(z1); */
 
             results = classifier.predictProbabilities(toFloatArray(data));
+            results2 = HAUclassifier.predictProbabilities(toFloatArray(data));
 
-                runningTextView.setText(Float.toString(round(results[0], 2)));
-                standingTextView.setText(Float.toString(round(results[1], 2)));
-                walkingTextView.setText(Float.toString(round(results[2], 2))); /* */
+            runningTextView.setText(Float.toString(round(results[0], 2)));
+            standingTextView.setText(Float.toString(round(results[1], 2)));
+            walkingTextView.setText(Float.toString(round(results[2], 2))); /* */
             //getDirections();
 
+            lsTextView.setText(Float.toString(round(results2[0], 2)));
+            nsTextView.setText(Float.toString(round(results2[1], 2)));
+            ssTextView.setText(Float.toString(round(results2[2], 2)));
+
+            stepLengthX = distanceEstimator.getStepLengthX(activity, unit);
+            stepLengthY = distanceEstimator.getStepLengthY(activity, unit);
+
             activity = activityClassifier.getActivity(results);
+            unit = unitClassifier.getUnit(results2);
 
             if(activity ==0 || activity ==2) //RUN || WALK
             {
-                stepLengthX = distanceEstimator.getStepLengthX(activity);
-                stepLengthY = distanceEstimator.getStepLengthY(activity);
-                Xcpos = Xnpos;
-                Xnpos = Xnpos +  (nSteps*stepLengthX*Math.cos(Math.toRadians(azimuth)));// System.out.println("Azimuth"+(azimuth-90));
-            //    System.out.println("Val"+50*Math.cos(Math.toRadians(azimuth-90)));
+                stepLengthX = distanceEstimator.getStepLengthX(activity, unit);
+                stepLengthY = distanceEstimator.getStepLengthY(activity, unit);
 
-             //   System.out.println("Cpos "+cpos+"Npos"+npos);
 
-                Ycpos = Ynpos;
-                Ynpos = Ynpos +  (nSteps*stepLengthY*Math.sin(Math.toRadians(azimuth)));
+                double Xnext = Xnpos +  (nSteps*stepLengthX*Math.cos(Math.toRadians(azimuth)));
+                double Ynext = Ynpos +  (nSteps*stepLengthY*Math.sin(Math.toRadians(azimuth)));
 
-                objectAnimatorX = ObjectAnimator.ofFloat(blueDot,"x",density* (float)Xcpos, density* (float)Xnpos);
-                objectAnimatorX.setDuration(2400);
-                objectAnimatorY = ObjectAnimator.ofFloat(blueDot,"y",density* (float)Ycpos,density* (float)Ynpos);
-                objectAnimatorY.setDuration(2400);
+                int nextPixel = mutableBobBitmap.getPixel((int)Xnext - (int)imageView.getX(),(int)Ynext-(int)imageView.getY());
+                System.out.println("Pixel Value: "+nextPixel);
 
-                AnimatorSet animSetXY = new AnimatorSet();
-                animSetXY.playTogether(objectAnimatorX, objectAnimatorY);
-                animSetXY.start();
+                if(nextPixel != bgPixel)
+                {
+                    Xcpos = Xnpos;
+                    Xnpos = Xnext;// System.out.println("Azimuth"+(azimuth-90));
+                    //    System.out.println("Val"+50*Math.cos(Math.toRadians(azimuth-90)));
+
+                    //   System.out.println("Cpos "+cpos+"Npos"+npos);
+
+                    Ycpos = Ynpos;
+                    Ynpos = Ynext;
+
+                    objectAnimatorX = ObjectAnimator.ofFloat(blueDot,"x",density* (float)Xcpos, density* (float)Xnpos);
+                    objectAnimatorX.setDuration(1800);
+                    objectAnimatorY = ObjectAnimator.ofFloat(blueDot,"y",density* (float)Ycpos,density* (float)Ynpos);
+                    objectAnimatorY.setDuration(1800);
+
+                    AnimatorSet animSetXY = new AnimatorSet();
+                    animSetXY.playTogether(objectAnimatorX, objectAnimatorY);
+                    animSetXY.start();
+                }
+
 
               /*  System.out.println("getTop "+imageView.getTop());
                 System.out.println("getX "+imageView.getX());
@@ -529,7 +580,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         Node blueDot = new Node(blueDotX,blueDotY);
 
-        mutableBobBitmap = Bitmap.createScaledBitmap(bobBitmap,700,1075,true);//,50,10,bobBitmap.getWidth(),bobBitmap.getHeight()
+        mutableBobBitmap = Bitmap.createScaledBitmap(bobBitmap,1060,1627,true);//,50,10,bobBitmap.getWidth(),bobBitmap.getHeight()
         mutableBobBitmap = mutableBobBitmap.copy(Bitmap.Config.ARGB_8888, true);
 
         myCanvas.setBitmap(mutableBobBitmap);
@@ -552,14 +603,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         }
       //  myCanvas.drawLine(87,220,140,220,myPaint);
         myCanvas.drawLine((float)blueDotX,(float)blueDotY,(float) mapNodes[closestNode].x , (float) mapNodes[closestNode].y ,myPaint);
-        path = map.getShortestPath(closestNode,destination);
 
-        float xOffset = (float)imageView.getX();
-        float yOffset = (float)imageView.getY();
-        for(int i=0;i<path.length - 1;i++)
-        {
-            myCanvas.drawLine((float) mapNodes[path[i]].x , (float) mapNodes[path[i]].y ,(float) mapNodes[path[i+1]].x , (float) mapNodes[path[i+1]].y,myPaint);
+        if(closestNode != destination) {
+            path = map.getShortestPath(closestNode, destination);
 
+            float xOffset = (float) imageView.getX();
+            float yOffset = (float) imageView.getY();
+            for (int i = 0; i < path.length - 1; i++) {
+                myCanvas.drawLine((float) mapNodes[path[i]].x, (float) mapNodes[path[i]].y, (float) mapNodes[path[i + 1]].x, (float) mapNodes[path[i + 1]].y, myPaint);
+
+            }
         }
 
     }

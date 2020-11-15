@@ -4,14 +4,14 @@ import android.content.Context;
 
 import org.tensorflow.contrib.android.TensorFlowInferenceInterface;
 
-public class HARClassifier {
+public class HAUClassifier {
     static {
         System.loadLibrary("tensorflow_inference");
     }
 
     private TensorFlowInferenceInterface inferenceInterface;
-   // private static final String MODEL_FILE = "file:///android_asset/frozen_model.pb";
-    private static final String MODEL_FILE = "file:///android_asset/frozen_harActivity200.pb";
+    // private static final String MODEL_FILE = "file:///android_asset/frozen_model.pb";
+    private static final String MODEL_FILE = "file:///android_asset/frozen_harAU97.pb";
     //private static final String MODEL_FILE = "file:///android_asset/frozen_harO.pb";
     private static final String INPUT_NODE = "input";
     private static final String[] OUTPUT_NODES = {"y_"};
@@ -19,7 +19,7 @@ public class HARClassifier {
     private static final long[] INPUT_SIZE = {1, 200, 3};
     private static final int OUTPUT_SIZE = 3;
 
-    public HARClassifier(final Context context) {
+    public HAUClassifier(final Context context) {
         inferenceInterface = new TensorFlowInferenceInterface(context.getAssets(), MODEL_FILE);
     }
 
@@ -29,7 +29,7 @@ public class HARClassifier {
         inferenceInterface.run(OUTPUT_NODES);
         inferenceInterface.fetch(OUTPUT_NODE, result);
 
-        //Biking   Downstairs	 Jogging	  Sitting	Standing	Upstairs	Walking
+        //SS NS LS
         return result;
     }
 
